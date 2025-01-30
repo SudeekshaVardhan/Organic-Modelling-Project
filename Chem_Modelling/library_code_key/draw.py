@@ -31,3 +31,4 @@ img = Draw.MolToImage(m)
 
 # Save the image as a skeletal structure (2D rendering)
 img.save("molecule.png")
+img.show()

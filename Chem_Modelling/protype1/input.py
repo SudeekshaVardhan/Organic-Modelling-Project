@@ -48,6 +48,7 @@ class Input:
         img = Draw.MolToImage(m)
 
         img.save('new.png')
+        img.show()
 
             
             
