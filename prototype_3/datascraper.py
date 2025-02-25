@@ -5,12 +5,12 @@ import numpy as np
 import pubchempy as pcp
 
 
+compound_list = [] # static variable
+
 import plotly
 import plotly.graph_objs as go
 # Stores the user's compounds (this is a static variable, so the user 
 # can access any previous compound if they wish)
-
-compound_list = [] # static variable
 
 # This class is to search and process data from the pubchem database
 class Datascraper:
@@ -75,30 +75,3 @@ class Datascraper:
 
 
 
-inp = input("Start? (Y/N):")
-inp = inp.lower()
-
-newData = Datascraper
-
-index = 0
-while inp != "n":
-    newData.takeInput(newData)
-    newData.datascraping(newData)
-    print(newData.getCoords(newData))
-
-
-    newData.molecule = None
-    inp = input("Continue? (Y/N)")
-
-    index += 1
-    
-print(index)
-
-for mol in compound_list:
-    print(mol)
-
-# newData.returnMF("ammonium thioglycolate")
-# print(newData.getCoords(newData))
-
-
-    
