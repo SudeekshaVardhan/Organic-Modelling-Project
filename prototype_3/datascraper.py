@@ -1,3 +1,5 @@
+import vtk
+
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem import Draw
@@ -30,13 +32,20 @@ class Datascraper:
         img = Draw.MolToImage(mol)
         img.show() # Display image in local image editor (remove in later versions, or push to seperate GUI)
 
-    def getCoords(self):
+    def returnSMILES(self):
+        data = pcp.get_compounds(self.molecule,'name')[0]
+        mol = Chem.MolFromSmiles(data.canonical_smiles)
+        mol = Chem.AddHs(mol)
+        print(mol)
+
+    def returnCoords(self):
         data = pcp.get_compounds(self.molecule, 'name')[0]
         mol = Chem.MolFromSmiles(data.canonical_smiles)
         mol = Chem.AddHs(mol)
         AllChem.EmbedMolecule(mol)
         AllChem.UFFOptimizeMolecule(mol)
         embed = mol.GetConformer().GetPositions()
+        print(embed)
 
     # "Getter" methods
     # Returns data using methods from pcp library
@@ -84,7 +93,27 @@ class Datascraper:
                 print(pcp.NotFoundError)
 
 class Modelling (Datascraper):
-    def __init__(self):
-        super().__init__()
-
     
+    newMol = vtk.vtkMolecule()
+    newMapper = vtk.vtkMoleculeMapper()
+    newActor = vtk.vtkActor()
+    newRenderer = vtk.vtkRenderWindow()
+    
+    def __init__(self, data):
+        super().__init__()
+        self.data = Datascraper
+    
+    def createMol(self):
+        data = pcp.get_compounds(self.molecule, "name")[0]
+        mol = Chem.MolFromSmiles(data.canonical_smiles)
+        mol = Chem.AddHs(mol)
+        AllChem.EmbedMolecule(mol)
+        AllChem.UFFOptimizeMolecule(mol)
+
+        for atom in mol.GetAtoms():
+            self.newMol.AppendAtom(atom.GetAtomicNum(), mol.GetConformer().GetAtomPosition(atom.GetIdx()))
+
+        for bond in mol.GetAtoms():
+            self.newMol.AppendBond(bond.GetBeginAtomIdc(), bond.GetEndAtom(), bond.GetBondType())
+    
+        

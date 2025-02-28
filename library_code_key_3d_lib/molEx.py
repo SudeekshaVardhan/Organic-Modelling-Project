@@ -21,6 +21,8 @@ mol = Chem.MolFromSmiles(data.canonical_smiles)
 mol = Chem.AddHs(mol)
 AllChem.EmbedMolecule(mol)
 AllChem.UFFOptimizeMolecule(mol)
+img = Draw.MolToImage(mol)
+img.show()
 
 newMol = vtk.vtkMolecule()
 
@@ -59,12 +61,17 @@ interactor.SetRenderWindow(renWin)
 renWin.Render()
 interactor.Start()
 
+'''
+KEY:
+- Carbon = gray
+- Hydrogen = white
+- Oxygen = red
 
-
-
-
-
-
-
+'''
+'''
+Additional Notes:
+- Check if it is possible to display the key on the vtk window
+- Add functionality to tkinter (make this more pretty and user-friendly)
+'''
 
 
