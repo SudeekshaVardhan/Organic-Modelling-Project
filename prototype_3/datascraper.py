@@ -119,7 +119,7 @@ class Modelling (Datascraper):
             self.newMol.AppendAtom(atom.GetAtomicNum(), mol.GetConformer().GetAtomPosition(atom.GetIdx()))
 
         for bond in mol.GetAtoms():
-            self.newMol.AppendBond(bond.GetBeginAtomIdc(), bond.GetEndAtom(), bond.GetBondType())
+            self.newMol.AppendBond(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), bond.GetBondType())
     
         self.newMapper.SetInputData(self.newMol)
         self.newActor.SetMapper(self.newMapper)
