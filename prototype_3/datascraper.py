@@ -1,4 +1,9 @@
+# Necessary Libraries
 import vtk
+import vtkmodules.vtkInteractionStyle
+import vtkmodules.vtkRenderingOpenGL2
+from vtkmodules.vtkCommonColor import vtkNamedColors
+from vtkmodules.vtkRenderingCore import vtkActor, vtkPolyDataMapper, vtkRenderWindow, vtkRenderer
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -96,7 +101,7 @@ class Modelling (Datascraper):
     
     newMol = vtk.vtkMolecule()
     newMapper = vtk.vtkMoleculeMapper()
-    newActor = vtk.vtkActor()
+    newActor = vtkActor()
     newRenderer = vtk.vtkRenderWindow()
     
     def __init__(self, data):
@@ -104,8 +109,8 @@ class Modelling (Datascraper):
         self.data = Datascraper
     
     def createMol(self):
-        data = pcp.get_compounds(self.molecule, "name")[0]
-        mol = Chem.MolFromSmiles(data.canonical_smiles)
+        stuff = pcp.get_compounds(self.molecule, "name")[0]
+        mol = Chem.MolFromSmiles(stuff.canonical_smiles)
         mol = Chem.AddHs(mol)
         AllChem.EmbedMolecule(mol)
         AllChem.UFFOptimizeMolecule(mol)
@@ -116,4 +121,8 @@ class Modelling (Datascraper):
         for bond in mol.GetAtoms():
             self.newMol.AppendBond(bond.GetBeginAtomIdc(), bond.GetEndAtom(), bond.GetBondType())
     
-        
+        self.newMapper.SetInputData(self.newMol)
+        self.newActor.SetMapper(self.newMapper)
+
+    def renWin(self):
+        pass
