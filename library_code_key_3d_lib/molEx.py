@@ -16,9 +16,13 @@ import plotly
 import plotly.graph_objs as go
 
 info = input("Enter mol:")
-data = pcp.get_compounds(info, "name")[0]
-mol = Chem.MolFromSmiles(data.canonical_smiles)
-mol = Chem.AddHs(mol)
+if info.lower() == "graphene":
+    data = "coronene"
+    mol = Chem.MolFromSmiles(data)
+else:
+    data = pcp.get_compounds(info, "name")[0]
+    mol = Chem.MolFromSmiles(data.canonical_smiles)
+    mol = Chem.AddHs(mol)
 AllChem.EmbedMolecule(mol)
 AllChem.UFFOptimizeMolecule(mol)
 img = Draw.MolToImage(mol)
@@ -66,7 +70,8 @@ KEY:
 - Carbon = gray
 - Hydrogen = white
 - Oxygen = red
-
+- Blue = nitrogen
+- Yellow = sulfur
 '''
 '''
 Additional Notes:

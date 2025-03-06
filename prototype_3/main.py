@@ -5,8 +5,8 @@ inp = input("Start? (Y/N):")
 inp = inp.lower()
 
 newData = datascraper.Datascraper
+newRen = datascraper.Modelling(newData)
 
-index = 0
 
 print(pcp.NotFoundError)
 
@@ -14,12 +14,12 @@ while inp != "n":
 
     newData.takeInput(newData)
     newData.datascraping(newData)
-    print(newData.getCoords(newData))
+
+    newRen.renWin()
 
     newData.molecule = None
     inp = input("Continue? (Y/N)")
 
-    index += 1
 
 
 
