@@ -1,4 +1,5 @@
 import datascraper
+import frontend
 import pubchempy as pcp
 
 inp = input("Start? (Y/N):")
@@ -6,9 +7,7 @@ inp = inp.lower()
 
 newData = datascraper.Datascraper
 newRen = datascraper.Modelling(newData)
-
-
-print(pcp.NotFoundError)
+newWin = frontend.Front
 
 while inp != "n":
 
@@ -20,7 +19,6 @@ while inp != "n":
     newData.molecule = None
     inp = input("Continue? (Y/N)")
 
-
-
+newWin.createWind()
 
     

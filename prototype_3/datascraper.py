@@ -105,12 +105,14 @@ class Datascraper:
             else:
                 print(pcp.NotFoundError)
 
+class CSVScrape:
+    def __init__(self):
+        pass
+
+
 class Modelling (Datascraper):
     
     newMol = vtk.vtkMolecule()
-    newMapper = vtk.vtkMoleculeMapper()
-    newActor = vtkActor()
-    newRenderer = vtk.vtkRenderWindow()
     
     def __init__(self, data):
         super().__init__()
@@ -129,16 +131,25 @@ class Modelling (Datascraper):
         for bond in mol.GetBonds():
             self.newMol.AppendBond(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), bond.GetBondType())
     
-        self.newMapper.SetInputData(self.newMol)
-        self.newActor.SetMapper(self.newMapper)
+
 
     def renWin(self):
+
+        newMapper = vtk.vtkMoleculeMapper()
+        newActor = vtk.vtkActor()
+        newRenderer = vtk.vtkRenderer()
+        newRenWin = vtk.vtkRenderWindow()
         self.createMol()
-        self.newRenderer.AddRenderer(self.newActor)
-        self.newRenderer.SetSize(500,800)
+
+        newMapper.SetInputData(self.newMol)
+        newActor.SetMapper(newMapper)
+        newRenderer.AddActor(newActor)
+        newRenWin.AddRenderer(newRenderer)
+        newRenWin.SetSize(500,800)
 
         interactor = vtk.vtkRenderWindowInteractor()
-        interactor.SetRenderWindow(self.newRenderer)
+        interactor.SetRenderWindow(newRenWin)
 
-        self.newRenderer.Render()
+        newRenWin.Render()
+        interactor.Initialize()
         interactor.Start()
