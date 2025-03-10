@@ -134,7 +134,7 @@ class Modelling (Datascraper):
 
     def renWin(self):
         self.createMol()
-        self.newRenderer.AddRenderer(self.newRenderer)
+        self.newRenderer.AddRenderer(self.newActor)
         self.newRenderer.SetSize(500,800)
 
         interactor = vtk.vtkRenderWindowInteractor()
