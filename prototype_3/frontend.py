@@ -30,8 +30,11 @@ class Front:
     def newWind(self):
         new_wind = tk.Toplevel()
         new_wind.geometry("800x500")
+
         text = tk.Text(new_wind, font=('Courier', 16))
         text.pack()
+        
         myentry = tk.Entry(new_wind)
         myentry.pack()
+        
         
