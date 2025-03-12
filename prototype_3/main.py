@@ -7,7 +7,7 @@ inp = inp.lower()
 
 newData = datascraper.Datascraper
 newRen = datascraper.Modelling(newData)
-newWin = frontend.Front
+newWin = frontend.Front()
 
 while inp != "n":
 
@@ -19,6 +19,5 @@ while inp != "n":
     newData.molecule = None
     inp = input("Continue? (Y/N)")
 
-newWin.createWind()
 
     

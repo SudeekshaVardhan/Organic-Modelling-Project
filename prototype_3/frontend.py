@@ -3,40 +3,35 @@ import datascraper
 
 class Front:
     
-    root = tk.Tk()
     def __init__(self):
-        pass
-        
-    def createWind (self):
-        # Create a window object
+        # Create a window object 
+        self.root = tk.Tk()
         self.root.geometry('800x500')
         self.root.title('Prolycule')
+    
+        self.customWind()
 
-    def inputStuff(self):
+        self.root.mainloop()
+
+
+    def customWind(self):
         label = tk.Label(self.root, text='PROLYCULE', font=('Courier', 64))
         label.pack(padx= 20, pady=20)
 
-        # Create box for text + entry (not used)
-        '''
-        text = tk.Text(root, font=('Courier', 16))
+        # Button to start process
+        button1 = tk.Button(self.root, text='START', font=('Courier', 16), command=self.newWind)
+        button1.pack(padx=10, pady=10)
+
+        button2 = tk.Button(self.root, text='CLOSE', font=('Courier', 16), command=self.root.destroy)
+        button2.pack(padx=10,pady=10)
+
+        # Images
+
+    def newWind(self):
+        new_wind = tk.Toplevel()
+        new_wind.geometry("800x500")
+        text = tk.Text(new_wind, font=('Courier', 16))
         text.pack()
-        myentry = tk.Entry(root)
+        myentry = tk.Entry(new_wind)
         myentry.pack()
-        '''
-
-        # Button
-        def buttonPressed():
-            global buttonCall
-            buttonCall = not buttonCall
-
-        buttonCall = False
-
-        button = tk.Button(root, text='START', font=('Courier', 16), command=buttonPressed())
-        button.pack(padx=10, pady=10)
-
-        if buttonCall:
-            print("I'm being pressed!")
-
-            
-        # Last 
-        self.root.mainloop()
+        
