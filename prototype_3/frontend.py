@@ -7,7 +7,7 @@ import os
 class Front:
     
     def __init__(self):
-        # Create a window object (customized)
+        # Create a window object (customized - set color and size)
         self.root = tk.Tk()
         self.root.geometry('800x500')
         self.root.title('Prolycule')
@@ -27,6 +27,7 @@ class Front:
 
 
     def customWind(self):
+        # Adds specific attributs to first frame
         label = tk.Label(self.main_frame, text='PROLYCULE', font=('Courier', 64))
         label.pack(padx= 20, pady=20)
 
@@ -43,7 +44,7 @@ class Front:
         '''
         Select from network or molecule
         - Network EX: Buckminsterfullerene, graphene
-        - Molecule EX: 
+        - Molecule EX: CO2, ethanol, acetate (ion)
         '''
         # Clear starting dialogue to page 1 (selections)
         for widget in self.main_frame.winfo_children():
@@ -84,12 +85,16 @@ class Front:
         button6.pack(padx=10,pady=10)
 
         # Return to selection page
-        button7 = tk.Button(self.main_frame, text="Back", font=("Courier", 16),command=self.newWind)
-        button7.pack(pady=100)
+        button7 = tk.Button(self.main_frame, text="Back", font=("Courier", 12),command=self.newWind)
+        button7.pack(padx=100,pady=150)
 
     def networkChecker(self):
         '''Input for network solids'''
         print("This is network checker")
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
+
+        label = tk.Label(self.main_frame, text="Enter the name of network solid or allotrope: ")
 
     def molViewer(self):
         '''New frame to view molecule. Add additional data'''
@@ -97,7 +102,7 @@ class Front:
             widget.destroy()
 
         # Creates instance of Datascraper class to access the image-generating datascraper class
-        gen = datascraper.Datascraper()
+        gen = datascraper.Modelling()
         gen.datascraping(self.input.get())
 
         # Get the correct file path for the mol image
@@ -116,15 +121,25 @@ class Front:
             im_label.image = image
             im_label.pack(pady=20)
 
+        # Debugging stuff
         except FileNotFoundError:
             print("Error: mol.png not found")
         
         except Exception as e:
             print(f"Unexpected error occured: {e}")
         
-        buttonA = tk.Button(self.main_frame, text="")
-        buttonB = tk.Button(self.main_frame, text="")
-        buttonC = tk.Button(self.main_frame, text="")
+        buttonA = tk.Button(self.main_frame, text="Properties", font=('Courier', 12))
+        buttonB = tk.Button(self.main_frame, text="Isomers", font=('Courier', 12))
+        buttonC = tk.Button(self.main_frame, text="Common Uses", font=('Courier', 12))
         buttonA.pack()
         buttonB.pack()
         buttonC.pack()
+
+        returnHome = tk.Button(self.main_frame, text="Home?", font=('Courier', 12), command=self.molChecker)
+        returnHome.pack(padx=10,pady=10)
+
+                
+        # 3D Modelling functionality (in progress)
+        # Must be at the end so it doesn't interrupt other processes
+        gen.renWin()
+

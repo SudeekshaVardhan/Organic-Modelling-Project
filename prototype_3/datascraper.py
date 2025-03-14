@@ -2,8 +2,6 @@
 import vtk
 import vtkmodules.vtkInteractionStyle
 import vtkmodules.vtkRenderingOpenGL2
-from vtkmodules.vtkCommonColor import vtkNamedColors
-from vtkmodules.vtkRenderingCore import vtkActor, vtkPolyDataMapper, vtkRenderWindow, vtkRenderer
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -67,7 +65,7 @@ class Datascraper:
 
     # "Getter" methods
     # Returns data using methods from pcp library
-    # Work in progress!!!
+    # Work in progress - redo so not dependent on the list object
     '''
         What it should return:
         - Molecular formula
@@ -111,6 +109,7 @@ class Datascraper:
                 print(pcp.NotFoundError)
 
 class CSVScrape:
+    # Used to read networks from other databases. Should access both pubchem and a seperate one for coordinates.
     def __init__(self):
         pass
 
@@ -119,9 +118,8 @@ class Modelling (Datascraper):
     
     newMol = vtk.vtkMolecule()
     
-    def __init__(self, data):
+    def __init__(self):
         super().__init__()
-        self.data = Datascraper
     
     def createMol(self):
         stuff = pcp.get_compounds(self.molecule, "name")[0]
@@ -136,7 +134,8 @@ class Modelling (Datascraper):
         for bond in mol.GetBonds():
             self.newMol.AppendBond(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), bond.GetBondType())
     
-
+    def createNet(self):
+        pass
 
     def renWin(self):
 
