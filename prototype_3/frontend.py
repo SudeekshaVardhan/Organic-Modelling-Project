@@ -90,12 +90,14 @@ class Front:
 
     def networkChecker(self):
         '''Input for network solids'''
-        print("This is network checker")
+
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
-        label = tk.Label(self.main_frame, text="Enter the name of network solid or allotrope: ")
+        entry = tk.Label(self.main_frame, text= "Enter name or formula of solid or allotrope: ", font=('Courier', 16))
+        entry.pack()
 
+        
     def molViewer(self):
         '''New frame to view molecule. Add additional data'''
         for widget in self.main_frame.winfo_children():
@@ -135,11 +137,16 @@ class Front:
         buttonB.pack()
         buttonC.pack()
 
-        returnHome = tk.Button(self.main_frame, text="Home?", font=('Courier', 12), command=self.molChecker)
+
+
+        returnHome = tk.Button(self.main_frame, text="Home?", font=('Courier', 12), 
+                               command=self.molChecker)
         returnHome.pack(padx=10,pady=10)
 
-                
         # 3D Modelling functionality (in progress)
         # Must be at the end so it doesn't interrupt other processes
-        gen.renWin()
+        # Issue: this takes back to home screen immediately and bypasses "Home?" button. Find a workaround
+        gen.renWin()  
 
+
+front1 = Front()

@@ -109,7 +109,8 @@ class Datascraper:
                 print(pcp.NotFoundError)
 
 class CSVScrape:
-    # Used to read networks from other databases. Should access both pubchem and a seperate one for coordinates.
+    # Used to read networks from other databases. Should access both pubchem and a seperate database or file for coordinates.
+    # Incomplete - additional work must be done on this
     def __init__(self):
         pass
 
