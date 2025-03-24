@@ -20,6 +20,7 @@ class Front:
 
         # Other important variables
         self.input = tk.StringVar()
+        self.data = datascraper.Modelling()
     
         self.customWind()
 
@@ -104,8 +105,7 @@ class Front:
             widget.destroy()
 
         # Creates instance of Datascraper class to access the image-generating datascraper class
-        gen = datascraper.Modelling()
-        gen.datascraping(self.input.get())
+        self.data.datascraping(self.input.get())
 
         # Get the correct file path for the mol image
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -130,7 +130,7 @@ class Front:
         except Exception as e:
             print(f"Unexpected error occured: {e}")
         
-        buttonA = tk.Button(self.main_frame, text="Properties", font=('Courier', 12))
+        buttonA = tk.Button(self.main_frame, text="Properties", font=('Courier', 12), command=self.returnProperties)
         buttonB = tk.Button(self.main_frame, text="Isomers", font=('Courier', 12))
         buttonC = tk.Button(self.main_frame, text="Common Uses", font=('Courier', 12))
         buttonA.pack()
@@ -146,7 +146,13 @@ class Front:
         # 3D Modelling functionality (in progress)
         # Must be at the end so it doesn't interrupt other processes
         # Issue: this takes back to home screen immediately and bypasses "Home?" button. Find a workaround
-        gen.renWin()  
+        self.data.renWin()  
 
+    def returnProperties(self):
+        box1 = tk.Listbox(self.main_frame)
+        box1.pack()
+
+        self.data.returnNames(self.input)
 
 front1 = Front()
+

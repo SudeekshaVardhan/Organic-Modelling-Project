@@ -8,9 +8,9 @@ from rdkit.Chem import AllChem
 from rdkit.Chem import Draw
 import pubchempy as pcp
 
+import requests
 import os
 
-compound_list = [] # static variable, refreshes each time program is run. while program is open, resets
 
 # This class is to search and process data from the pubchem database
 class Datascraper:
@@ -23,7 +23,6 @@ class Datascraper:
 
     def datascraping(self, molecule): 
         self.molecule = molecule
-        compound_list.append(self.molecule)
         data = pcp.get_compounds(self.molecule,'name')[0]     
         if not data:
             print(f"Error: Molecule not found in PubChem")
@@ -72,50 +71,48 @@ class Datascraper:
         - Properties
     '''
     def returnNumAtoms(self):
-        data = pcp.get_compounds(self.molecule, 'name')[0]
+        # Returns the number of atoms in a molecule
+        data = pcp.get_compounds(self.molecule, 'name')[0] # Checks for the molecule in the PubChem database
         mol = Chem.MolFromSmiles(data.canonical_smiles)
         AllChem.EmbedMolecule(mol)
-        AllChem.UFFOptimizeMolecule(mol)
+        AllChem.UFFOptimizeMolecule(mol) 
         print(mol.GetNumAtoms())
 
-    def returnData(self):
-        for mol in compound_list:
-            print(mol)
+    def returnNames(self, mol_name):
+        try:
+            if not mol_name: # Checks if there is a valid molecule entry
+                return "No molecule found. Try again."
+            
+            data = pcp.get_compounds(mol_name, "name")[0]
+            compounds = list(set(data.synonyms))
+            
+            nicer = [s for s in compounds if not any (char.isdigit() for char in s[:5])]
+            nicer = sorted(nicer, key=len)
+    
+            for x in nicer:
+                print(x)
+                print("")
 
-    def returnMF(self, mol_name):
-        for mol in compound_list:
-            if mol == mol_name:
-                data = pcp.get_properties(mol)
-                print(data)
-            else:
-                print(pcp.NotFoundError)
+        except Exception as e:
+                print(e)
+                return
 
-    def returnProperties(self, mol_name):
-        for mol in compound_list:
-            if mol == mol_name:
-                ind = compound_list.index(mol)
-                mol_name = pcp.get_compounds(mol, 'name')[0]
-                data = pcp.get_properties(mol_name)
-                print(data)
-            else:
-                print(pcp.NotFoundError)
-
-    def returnMolWeight(self, mol_name):
-        for mol in compound_list:
-            if mol == mol_name:
-                data = pcp.get_compounds(mol, 'name')[0]
-                print(data.molecular_weight)
-            else:
-                print(pcp.NotFoundError)
+    def returnIsomers(self):
+        pass
 
 class CSVScrape:
     # Used to read networks from other databases. Should access both pubchem and a seperate database or file for coordinates.
     # Incomplete - additional work must be done on this
     def __init__(self):
-        pass
+        self.network = None
+    
+    def getNetwork(self, network):
+        self.network = network # Sets the local variable
+        url1 = f"https://www.crystallography.net/cod/result?text={network}&format=json"
 
+        response = requests.get(url1)
 
-class Modelling (Datascraper):
+class Modelling (Datascraper, CSVScrape):
     
     newMol = vtk.vtkMolecule()
     
@@ -123,17 +120,27 @@ class Modelling (Datascraper):
         super().__init__()
     
     def createMol(self):
-        stuff = pcp.get_compounds(self.molecule, "name")[0]
-        mol = Chem.MolFromSmiles(stuff.canonical_smiles)
-        mol = Chem.AddHs(mol)
-        AllChem.EmbedMolecule(mol)
-        AllChem.UFFOptimizeMolecule(mol)
+        
+        self.newMol.Initialize() # Prevents the molecules from stacking on top of each other
+       
+        try:
+            if self.molecule == None:
+                print("Error: No input for molecule")
+            stuff = pcp.get_compounds(self.molecule, "name")[0]
+            if not stuff:
+                print("Error: Mol not found")
+            mol = Chem.MolFromSmiles(stuff.canonical_smiles)
+            mol = Chem.AddHs(mol)
+            AllChem.EmbedMolecule(mol)
+            AllChem.UFFOptimizeMolecule(mol)
 
-        for atom in mol.GetAtoms():
-            self.newMol.AppendAtom(atom.GetAtomicNum(), mol.GetConformer().GetAtomPosition(atom.GetIdx()))
+            for atom in mol.GetAtoms():
+                self.newMol.AppendAtom(atom.GetAtomicNum(), mol.GetConformer().GetAtomPosition(atom.GetIdx()))
 
-        for bond in mol.GetBonds():
-            self.newMol.AppendBond(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), bond.GetBondType())
+            for bond in mol.GetBonds():
+                self.newMol.AppendBond(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), bond.GetBondType())
+        except Exception as e:
+            print(e)
     
     def createNet(self):
         pass
