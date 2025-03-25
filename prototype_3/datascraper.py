@@ -8,7 +8,8 @@ from rdkit.Chem import AllChem
 from rdkit.Chem import Draw
 import pubchempy as pcp
 
-import requests
+from mp_api.client import MPRester 
+
 import os
 
 
@@ -97,20 +98,65 @@ class Datascraper:
                 print(e)
                 return
 
-    def returnIsomers(self):
-        pass
+    def getIsomers(self, mol_name):
+        try:
+            if not mol_name:
+                return "No"
+            data = pcp.get_compounds(mol_name, "name")[0]
+            st1 = data.defined_atom_stereo_count
+            st2 = data.defined_bond_stereo_count
+            if st1 > 0 and st2 > 0:
+                return True            
+            for compound in data:
+                print("o")
+        except Exception as e:
+            print(e)
+            return
 
 class CSVScrape:
-    # Used to read networks from other databases. Should access both pubchem and a seperate database or file for coordinates.
-    # Incomplete - additional work must be done on this
+    # Uses the Materials Project database - API Key required to get access (programmer - not sure if user needs it yet)
+    # My account for API is connected to my GitHub account
+
     def __init__(self):
         self.network = None
-    
-    def getNetwork(self, network):
-        self.network = network # Sets the local variable
-        url1 = f"https://www.crystallography.net/cod/result?text={network}&format=json"
+        self.API_KEY = "CcWdfjf4GIvmnrTL4QkPOGPuF9JauIuo" # My unique API Key from the account
+        
+    def getID(self, name):
+        with MPRester(self.API_KEY) as mpr:
+            try:
+                # Query the database using the material's formula
+                structure = mpr.get_structure_by_formula(network)
+                
+                # Fetch the CIF data
+                cif_data = structure.to(fmt="cif")
+                
+                # Write CIF to a file
+                with open(f"{network}.cif", "w") as file:
+                    file.write(cif_data)
+                print(f"Downloaded CIF file for {network}!")
+            except Exception as e:
+                print(f"Error: {e}")
 
-        response = requests.get(url1)
+    def getNetwork(self, network):
+        self.network = network
+        mpid = self.getID(self.network)
+        
+        if mpid:
+            try:
+                with MPRester(self.API_KEY) as mpr:
+                    # Fetch the CIF structure using the MP-ID
+                    structure = mpr.get_structure_by_task_id(mpid)
+                    
+                    # Save the CIF structure to a file
+                    cif = structure.to(fmt="cif")
+                    with open("network.cif", "w") as file:
+                        file.write(cif)
+                    
+                    print("Downloaded CIF file for 3D modeling!")
+            except Exception as e:
+                print(f"Failed to fetch CIF file: {e}")
+        else:
+            print("Failed to retrieve MP-ID, cannot fetch CIF file.")
 
 class Modelling (Datascraper, CSVScrape):
     
@@ -165,3 +211,4 @@ class Modelling (Datascraper, CSVScrape):
         newRenWin.Render()
         interactor.Initialize()
         interactor.Start()
+

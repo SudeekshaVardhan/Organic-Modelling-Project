@@ -95,9 +95,24 @@ class Front:
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
-        entry = tk.Label(self.main_frame, text= "Enter name or formula of solid or allotrope: ", font=('Courier', 16))
-        entry.pack()
+        quer2 = tk.Label(self.main_frame, text= "Enter name or formula of solid or allotrope: ", font=('Courier', 16))
+        quer2.pack()
 
+        myentry = tk.Entry(self.main_frame, textvariable= self.input, font=('Courier', 16), width=20)
+        myentry.pack()
+
+        # Submit button should access the network database to get the dat from COD
+        def submit():
+            self.input.set(myentry.get())
+            print(self.input.get())
+            self.netViewer()
+
+        button6 = tk.Button(self.main_frame, text="Submit", font=('Courier', 16), command=submit)
+        button6.pack(padx=10,pady=10)
+
+        # Return to selection page
+        button7 = tk.Button(self.main_frame, text="Back", font=("Courier", 12),command=self.newWind)
+        button7.pack(padx=100,pady=150)
         
     def molViewer(self):
         '''New frame to view molecule. Add additional data'''
@@ -131,13 +146,11 @@ class Front:
             print(f"Unexpected error occured: {e}")
         
         buttonA = tk.Button(self.main_frame, text="Properties", font=('Courier', 12), command=self.returnProperties)
-        buttonB = tk.Button(self.main_frame, text="Isomers", font=('Courier', 12))
-        buttonC = tk.Button(self.main_frame, text="Common Uses", font=('Courier', 12))
+        buttonB = tk.Button(self.main_frame, text="Isomers", font=('Courier', 12), command=self.returnIsomers)
+        buttonC = tk.Button(self.main_frame, text="Structural Formulas", font=('Courier', 12))
         buttonA.pack()
         buttonB.pack()
         buttonC.pack()
-
-
 
         returnHome = tk.Button(self.main_frame, text="Home?", font=('Courier', 12), 
                                command=self.molChecker)
@@ -147,6 +160,9 @@ class Front:
         # Must be at the end so it doesn't interrupt other processes
         # Issue: this takes back to home screen immediately and bypasses "Home?" button. Find a workaround
         self.data.renWin()  
+    def netViewer(self):
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
 
     def returnProperties(self):
         box1 = tk.Listbox(self.main_frame)
@@ -154,5 +170,15 @@ class Front:
 
         self.data.returnNames(self.input)
 
+    def returnIsomers(self):
+        txt = tk.Label(self.main_frame, text=self.data.getIsomers)
+        txt.pack
+
+    def returnIsomers(self):
+        pass
+
+
 front1 = Front()
 
+data = datascraper.CSVScrape()
+data.getNetwork("graphite")
