@@ -144,10 +144,12 @@ class Front:
         
         except Exception as e:
             print(f"Unexpected error occured: {e}")
+  
         
-        buttonA = tk.Button(self.main_frame, text="Properties", font=('Courier', 12), command=self.returnProperties)
+        buttonA = tk.Button(self.main_frame, text="Names", font=('Courier', 12), command=self.returnAltNames)
         buttonB = tk.Button(self.main_frame, text="Isomers", font=('Courier', 12), command=self.returnIsomers)
         buttonC = tk.Button(self.main_frame, text="Structural Formulas", font=('Courier', 12))
+
         buttonA.pack()
         buttonB.pack()
         buttonC.pack()
@@ -160,15 +162,28 @@ class Front:
         # Must be at the end so it doesn't interrupt other processes
         # Issue: this takes back to home screen immediately and bypasses "Home?" button. Find a workaround
         self.data.renWin()  
+        
+    def returnAltNames(self):
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
+        
+        text = "Alternate Names for {self.data.molecule.get()}"
+        molTitle = tk.Label(self.main_frame, text= "Alternate Names for {self.data.molecule.get()}", font=("Courier", 16))
+        molTitle.pack(padx=10,pady=10)
+
+        box1 = tk.Listbox(self.main_frame, width=50) 
+        box1.pack()
+            
+        list = self.data.returnNames(self.input.get())
+        for data in list:
+            box1.insert(tk.END, data)
+            
+          
     def netViewer(self):
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
-    def returnProperties(self):
-        box1 = tk.Listbox(self.main_frame)
-        box1.pack()
 
-        self.data.returnNames(self.input)
 
     def returnIsomers(self):
         txt = tk.Label(self.main_frame, text=self.data.getIsomers)
@@ -180,5 +195,5 @@ class Front:
 
 front1 = Front()
 
-data = datascraper.CSVScrape()
-data.getNetwork("graphite")
+data = datascraper.NetworkSearch()
+print(data.getCODID("graphite"))

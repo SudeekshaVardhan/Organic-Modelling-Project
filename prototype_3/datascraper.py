@@ -1,15 +1,18 @@
 # Necessary Libraries
-import vtk
-import vtkmodules.vtkInteractionStyle
-import vtkmodules.vtkRenderingOpenGL2
 
+# Chem Libraries
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem import Draw
 import pubchempy as pcp
 
-from mp_api.client import MPRester 
+# Modelling Libraries
+import vtk
+import vtkmodules.vtkInteractionStyle
+import vtkmodules.vtkRenderingOpenGL2
 
+import requests
+import json
 import os
 
 
@@ -37,7 +40,7 @@ class Datascraper:
             return
         
         # Save in the same directory as program
-        script_dir = os.path.dirname(os.path.abspath(__file__))  
+        script_dir = os.getcwd()  
         file_path = os.path.join(script_dir, "mol.png")  # Save inside the same directory
 
         # Save image
@@ -90,9 +93,7 @@ class Datascraper:
             nicer = [s for s in compounds if not any (char.isdigit() for char in s[:5])]
             nicer = sorted(nicer, key=len)
     
-            for x in nicer:
-                print(x)
-                print("")
+            return nicer
 
         except Exception as e:
                 print(e)
@@ -113,52 +114,35 @@ class Datascraper:
             print(e)
             return
 
-class CSVScrape:
-    # Uses the Materials Project database - API Key required to get access (programmer - not sure if user needs it yet)
+class NetworkSearch:
+    # Uses the COD database - API Key required to get access (programmer - not sure if user needs it yet)
     # My account for API is connected to my GitHub account
 
     def __init__(self):
         self.network = None
-        self.API_KEY = "CcWdfjf4GIvmnrTL4QkPOGPuF9JauIuo" # My unique API Key from the account
+        self.CODID = None
         
-    def getID(self, name):
-        with MPRester(self.API_KEY) as mpr:
-            try:
-                # Query the database using the material's formula
-                structure = mpr.get_structure_by_formula(network)
-                
-                # Fetch the CIF data
-                cif_data = structure.to(fmt="cif")
-                
-                # Write CIF to a file
-                with open(f"{network}.cif", "w") as file:
-                    file.write(cif_data)
-                print(f"Downloaded CIF file for {network}!")
-            except Exception as e:
-                print(f"Error: {e}")
+    def getCODID(self, name):
+        self.network = name
+        # Searches the database by compound name (Crystallography Open Database)
+        url = f"https://www.crystallography.net/cod/result?text={self.network}&format=json" 
+        response = requests.get(url)
 
-    def getNetwork(self, network):
-        self.network = network
-        mpid = self.getID(self.network)
-        
-        if mpid:
+        if response.status_code == 200: # Runs
             try:
-                with MPRester(self.API_KEY) as mpr:
-                    # Fetch the CIF structure using the MP-ID
-                    structure = mpr.get_structure_by_task_id(mpid)
-                    
-                    # Save the CIF structure to a file
-                    cif = structure.to(fmt="cif")
-                    with open("network.cif", "w") as file:
-                        file.write(cif)
-                    
-                    print("Downloaded CIF file for 3D modeling!")
-            except Exception as e:
-                print(f"Failed to fetch CIF file: {e}")
+                data = response.json()
+                if isinstance(data, list) and data:
+                    self.CODID = data[0].get("file", "alt")
+                    return self.CODID
+                else:
+                    return "Error: Liat does not exist"
+            except json.JSONDecodeError:
+                return "Failed to read JSON file"
+        
         else:
-            print("Failed to retrieve MP-ID, cannot fetch CIF file.")
+            return f"Error: Database is currently not working (Error Code {response.status_code})"
 
-class Modelling (Datascraper, CSVScrape):
+class Modelling (Datascraper, NetworkSearch):
     
     newMol = vtk.vtkMolecule()
     
