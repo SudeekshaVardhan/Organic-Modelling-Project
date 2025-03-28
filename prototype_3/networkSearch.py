@@ -92,79 +92,37 @@ class NetworkSearch:
         except Exception as e:
             return f"Error: {e}" # Return any errors while downloading the data from file
         
-    # Fixed values for temperature
-    def getProperties(self, mol_name, param):
+    # Fixed values for temperature @ 298 K (similar method in the MolSearch class)
+    def getProperties(self, mol_name, param=None):
         try:
-            returnVal = param
             if not mol_name:
                 return "No molecule entered"
+            
+            # Get data from PubChem
             data = pcp.get_compounds(mol_name, "name")[0]
             
-            logP = data.xlogp # Returns P value
-            charge = data.charge # Get atom charge (if any)
-            iupac = data.iupac_name # Get Atom Name
-            boil = getattr(data, 'boiling_point', 'N/A')
-            melt = getattr(data, 'melting_point', 'N/A')
-
-            # Thermo data (get from the thermo)
+            # Object of the thermo.chemical library. Returns thermodynamic data on select compounds.
             chem = Chemical(mol_name)
-            specHeatCap = chem.Cp(298)
-            enthalpy = chem.H(298)
-            entropy = chem.S(298)
-            gibbs = chem.G(298)
 
-            vals = [logP, charge, iupac, boil, melt, specHeatCap, enthalpy, entropy, gibbs]
-
-            for val in vals:
-                if param == val:
-                    print(val)
-                    return
-                elif param == val and val == None:
-                    print("N/A")
-                    return
-                else:
-                    print("Request not found.")
-                    return
-
-        except Exception as e:
-            return e
+            # Create a dictionary for each
+            properties = {
+                "logP": getattr(data, "xlogp", "N/A"),
+                "charge": getattr(data, "charge", "N/A"),
+                "iupac": getattr(data, "iupac_name", "N/A"),
+                "boiling_point": getattr(data, "boiling_point", "N/A"),
+                "melting_point": getattr(data, "melting_point", "N/A"),
+                "specific_heat_capacity": getattr(chem, "Cp", "N/A"),
+                "enthalpy": getattr(chem, "Hf", "N/A"),
+                "entropy": getattr(chem, "Sf", "N/A"),
+                "gibbs_free_energy": getattr(chem, "Gf", "N/A")
+            }
         
-    # Override for user input temp
-    def getProperties(self, mol_name, param, temps):
-        try:
-            returnVal = param
-            if not mol_name:
-                return "No molecule entered"
-            data = pcp.get_compounds(mol_name, "name")[0]
-            
-            logP = data.xlogp # Returns P value
-            charge = data.charge # Get atom charge (if any)
-            iupac = data.iupac_name # Get Atom Name
-            boil = getattr(data, 'boiling_point', 'N/A')
-            melt = getattr(data, 'melting_point', 'N/A')
+            if param: # If param exists, then get the info at the 
+                return properties.get(param, f"Error: '{param}' is not a valid property")
 
-            # Thermo data (get from the thermo)
-            chem = Chemical(mol_name)
-            specHeatCap = chem.Cp(temps)
-            enthalpy = chem.H(temps)
-            entropy = chem.S(temps)
-            gibbs = chem.G(temps)
-
-            vals = [logP, charge, iupac, boil, melt, specHeatCap, enthalpy, entropy, gibbs]
-
-            for val in vals:
-                if param == val:
-                    print(val)
-                    return
-                elif param == val and val == None:
-                    print("N/A")
-                    return
-                else:
-                    print("Request not found.")
-                    return
-                
+            return properties
         except Exception as e:
-            return e
+            return str(e)
     
     def getNetImg(self, name):
         # Gets info from the PubChempy database instead of COD or MP Rester to generate 2D image. 
@@ -172,20 +130,25 @@ class NetworkSearch:
         self.network = name
         data = pcp.get_compounds(self.network,'name')[0]     
         if not data:
-            return f"Error: Molecule not found in PubChem"
+            print(f"Error: Molecule not found in PubChem")
+            return
         
-        net = Chem.MolFromSmiles(data.isomeric_smiles)
-        net = Chem.AddHs(net)
+        mol = Chem.MolFromSmiles(data.canonical_smiles)
+        mol = Chem.AddHs(mol)
 
-        if net is None: # If data does
-            return f"Error: Invalid molecule"
-            
+        if mol is None:
+            print(f"Error: Invalid molecule")
+            return
+        
         # Save in the same directory as program
         script_dir = os.path.dirname(os.path.abspath(__file__))  
         file_path = os.path.join(script_dir, "network.png")  # Save inside the same directory
 
         # Save image
-        img = Draw.MolToFile(net, file_path, size=(200,200))    
+        img = Draw.MolToFile(mol, file_path, size=(200,200))
+        
+        # Check it was saved
+        print(f"mol.png successfully saved at: {file_path}")
 
 class NetModel(NetworkSearch):
 

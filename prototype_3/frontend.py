@@ -131,7 +131,7 @@ class Front:
         button7.pack(padx=100,pady=150)
         
     def molViewer(self):
-        '''New frame to view molecule. Add additional data'''
+        '''New frame to view molecule'''
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
@@ -142,6 +142,11 @@ class Front:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         file_path = os.path.join(script_dir, "mol.png")
 
+        print("Expected image path: ", file_path)
+
+        if not os.path.exists(file_path):
+            print("Error: Image file not found")
+            return
         # Display 2D rendering created by the Datascraper class
         try:
             # Convert image file to tkinter readable format
@@ -151,6 +156,8 @@ class Front:
             
             # Display image as a label
             im_label = tk.Label(self.main_frame, image=image)
+            im_label.image = image
+            self.image_ref = image
             im_label.pack(pady=20)
 
         # Debugging stuff
@@ -160,8 +167,8 @@ class Front:
         except Exception as e:
             print(f"Unexpected error occured: {e}")
 
-        buttonA = tk.Button(self.main_frame, text="Other Names", font=('Courier', 12), command=self.returnAltNames)
-        buttonB = tk.Button(self.main_frame, text="Properties", font=('Courier', 12), command=self.returnProperties)
+        buttonA = tk.Button(self.main_frame, text="Other Names", font=('Courier', 12), command=self.returnMolAltNames)
+        buttonB = tk.Button(self.main_frame, text="Properties", font=('Courier', 12), command=self.returnMolProperties)
 
         buttonA.pack(padx=10, pady=10)
         buttonB.pack(padx=10, pady=10)
@@ -178,7 +185,18 @@ class Front:
         for widget in self.main_frame.winfo_children(): # Switch to the next page of the program
             widget.destroy()
 
-        # Instantiates the 
+        txt = tk.Label(self.main_frame, 
+                      text= "Note: The image displays a single repeating unit of a network.", 
+                      font=("Courier", 10))
+        txt.pack(padx=10, pady=10)
+
+        txt2 = tk.Label(self.main_frame, 
+                      text= "Note: Refer to the structure to observe the network as a whole.", 
+                      font=("Courier", 10))
+        txt2.pack(padx=10, pady=10)
+
+
+        # Instantiates the command to get the single repeating unit of the network
         self.nets.getCIF(self.input.get())
 
         # Get the correct file path for the mol image
@@ -194,7 +212,11 @@ class Front:
             
             # Display image as a label
             im_label = tk.Label(self.main_frame, image=image)
+            im_label.image = image
             im_label.pack(pady=20)
+
+            self.root.update_idletasks()  
+            self.root.update()
 
         # Debugging stuff
         except FileNotFoundError:
@@ -203,9 +225,8 @@ class Front:
         except Exception as e:
             print(f"Unexpected error occured: {e}")
         
-        buttonA = tk.Button(self.main_frame, text="Other Names", font=('Courier', 12), command=self.returnAltNames)
-        buttonB = tk.Button(self.main_frame, text="Properties", font=('Courier', 12), command=self.returnProperties)
-
+        buttonA = tk.Button(self.main_frame, text="Other Names", font=('Courier', 12), command=self.returnNetAltNames)
+        buttonB = tk.Button(self.main_frame, text="Properties", font=('Courier', 12), command=self.returnNetProperties)
         buttonA.pack(padx=10, pady=10)
         buttonB.pack(padx=10, pady=10)
 
@@ -233,7 +254,7 @@ class Front:
         for data in list:
             box1.insert(tk.END, data)
 
-        homeButton = tk.Button(self.main_frame, text="Back", command=self.molViewer)
+        homeButton = tk.Button(self.main_frame, text="Back", font=('Courier', 12), command=self.molViewer)
         homeButton.pack(padx=10, pady=10)
 
     def returnMolProperties(self):
@@ -243,10 +264,69 @@ class Front:
         molTitle = tk.Label(self.main_frame, text=text, font=("Courier", 16))
         molTitle.pack(padx=10, pady=10)
 
-        properties = []
-        label = tk.Label(self.main_frame, )
+        info = str(self.input.get()).lower()
+        properties = [
+            f"Log P Value: {self.data.getProperties(info, 'logP')}",
+            f"Compound Charge: {self.data.getProperties(info, 'charge')}",
+            f"IUPAC Name: {self.data.getProperties(info, 'iupac')}",
+            f"Boiling Point: {self.data.getProperties(info, 'boiling_point')}",
+            f"Melting Point: {self.data.getProperties(info, 'melting_point')}",
+            f"Specific Heat Capacity: {self.data.getProperties(info, 'specific_heat_capacity')}",
+            f"Enthalpy at 298 K (): {self.data.getProperties(info, 'enthalpy')}",
+            f"Entropy at 298 K (): {self.data.getProperties(info, 'entropy')}",
+            f"Gibbs Free Energy at 298 K (): {self.data.getProperties(info, 'gibbs_free_energy')}",  
+        ]
 
-        homeButton = tk.Button(self.main_frame, text="Back", command=self.newWind)
+        for val in properties:
+            label = tk.Label(self.main_frame, text=val, font=("Courier", 12))
+            label.pack()
+
+        homeButton = tk.Button(self.main_frame, text="Back", font = ("Courier", 12), command=self.molViewer)
+        homeButton.pack(padx=10, pady=10)
+    
+    def returnNetAltNames(self):
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
+        
+        text = f"Alternate Names for {self.input.get()}"
+        molTitle = tk.Label(self.main_frame, text=text, font=("Courier", 16))
+        molTitle.pack(padx=10,pady=10)
+
+        box1 = tk.Listbox(self.main_frame, width=50) 
+        box1.pack()
+            
+        list = self.data.returnNames(self.input.get())
+        for data in list:
+            box1.insert(tk.END, data)
+
+        homeButton = tk.Button(self.main_frame, text="Back", font=("Courier", 12), command=self.netViewer)
+        homeButton.pack(padx=10, pady=10)
+
+    def returnNetProperties(self):
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
+        text = f"Properties for {self.input.get()}"
+        molTitle = tk.Label(self.main_frame, text=text, font=("Courier", 16))
+        molTitle.pack(padx=10, pady=10)
+
+        info = str(self.input.get()).lower()
+        properties = [
+            f"Log P Value: {self.data.getProperties(info, 'logP')}",
+            f"Compound Charge: {self.data.getProperties(info, 'charge')}",
+            f"IUPAC Name: {self.data.getProperties(info, 'iupac')}",
+            f"Boiling Point: {self.data.getProperties(info, 'boiling_point')}",
+            f"Melting Point: {self.data.getProperties(info, 'melting_point')}",
+            f"Specific Heat Capacity: {self.data.getProperties(info, 'specific_heat_capacity')}",
+            f"Enthalpy at 298 K (): {self.data.getProperties(info, 'enthalpy')}",
+            f"Entropy at 298 K (): {self.data.getProperties(info, 'entropy')}",
+            f"Gibbs Free Energy at 298 K (): {self.data.getProperties(info, 'gibbs_free_energy')}",  
+        ]
+
+        for val in properties:
+            label = tk.Label(self.main_frame, text=val, font=("Courier", 12))
+            label.pack()
+
+        homeButton = tk.Button(self.main_frame, text="Back", font = ("Courier", 12), command=self.netViewer)
         homeButton.pack(padx=10, pady=10)
 
 front1 = Front()

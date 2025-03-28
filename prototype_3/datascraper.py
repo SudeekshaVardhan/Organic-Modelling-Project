@@ -24,58 +24,37 @@ class MolSearch:
         pass
 
     def datascraping(self, molecule): 
+        print(f"Scraping data for molecule: {molecule}")  # Debugging molecule name
         self.molecule = molecule
-        data = pcp.get_compounds(self.molecule,'name')[0]     
+        data = pcp.get_compounds(self.molecule,'name')[0]
         if not data:
             print(f"Error: Molecule not found in PubChem")
             return
         
-        mol = Chem.MolFromSmiles(data.isomeric_smiles)
+        mol = Chem.MolFromSmiles(data.canonical_smiles)
         mol = Chem.AddHs(mol)
 
         if mol is None:
             print(f"Error: Invalid molecule")
             return
+
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(script_dir, "mol.png")
         
-        # Save in the same directory as program
-        script_dir = os.getcwd()  
-        file_path = os.path.join(script_dir, "mol.png")  # Save inside the same directory
-
-        if os.path.exists(file_path):
-            os.remove(file_path)
-
-        # Save image
+        print(f"Saving image to {file_path}")  # Debugging path
         img = Draw.MolToFile(mol, file_path, size=(200,200))
+        print(f"mol.png successfully saved at: {file_path}")
 
-    def returnCoords(self):
-        data = pcp.get_compounds(self.molecule, 'name')[0]
-        if not data:
-            return pcp.NotFoundError()
-        mol = Chem.MolFromSmiles(data.isomeric_smiles)
-        mol = Chem.AddHs(mol)
-        AllChem.EmbedMolecule(mol)
-        AllChem.UFFOptimizeMolecule(mol)
-        embed = mol.GetConformer().GetPositions()
-        print(embed)
-
-    # "Getter" methods
-    # Returns data using methods from pcp library
-    # Work in progress - redo so not dependent on the list object
     '''
+    "Getter" methods
+    Returns data using methods from pcp library
+
         What it should return:
-        - Names
+        - Alternate Names
         - Properties
-        - Isomers - Number of chiral centers, how many isomers
+            - 
 
     '''
-    def returnNumAtoms(self):
-        # Returns the number of atoms in a molecule
-        data = pcp.get_compounds(self.molecule, 'name')[0] # Checks for the molecule in the PubChem database
-        mol = Chem.MolFromSmiles(data.canonical_smiles)
-        AllChem.EmbedMolecule(mol)
-        AllChem.UFFOptimizeMolecule(mol) 
-        print(mol.GetNumAtoms())
-
     def returnNames(self, mol_name):
         try:
             if not mol_name: # Checks if there is a valid molecule entry
@@ -95,41 +74,40 @@ class MolSearch:
 
     # Properties found in IB data booklet for select compounds (things that IB Chem students need)
     # For enthalpy, the temperature is fixed at 298 (the standard values in the databooklet for compounds)
-    def getProperties(self, mol_name, param):
+
+    def getProperties(self, mol_name, param=None):
         try:
-            returnVal = param
             if not mol_name:
                 return "No molecule entered"
+            
+            # Get data from PubChem
             data = pcp.get_compounds(mol_name, "name")[0]
             
-            logP = data.xlogp # Returns P value
-            charge = data.charge # Get atom charge (if any)
-            iupac = data.iupac_name # Get Atom Name
-            boil = getattr(data, 'boiling_point', 'N/A')
-            melt = getattr(data, 'melting_point', 'N/A')
+            # Object of the thermo.chemical library. Returns thermodynamic data on select compounds.
+            chem = Chemical(str(mol_name))
 
-            # Thermo data (get from the thermo.chemical library)
-            chem = Chemical(mol_name)
-            specHeatCap = chem.Cp(298)
-            enthalpy = chem.H(298)
-            entropy = chem.S(298)
-            gibbs = chem.G(298)
+            # Create a dictionary for each
+            properties = {
+                "logP": getattr(data, "xlogp", "N/A"),
+                "charge": getattr(data, "charge", "N/A"),
+                "iupac": getattr(data, "iupac_name", "N/A"),
+                "boiling_point": getattr(data, "boiling_point", "N/A"),
+                "melting_point": getattr(data, "melting_point", "N/A"),
+                "specific_heat_capacity": chem.Cp,
+                "enthalpy": chem.Hf,
+                "entropy": chem.Sf,
+                "gibbs_free_energy": chem.Gf
+            }
 
-            vals = [logP, charge, iupac, boil, melt, specHeatCap, enthalpy, entropy, gibbs]
+            # Thermo data
+        
+            if param: # If param exists, then get the info at the 
+                return properties.get(param, f"Error: '{param}' is not a valid property")
 
-            for val in vals:
-                if param == val:
-                    print(val)
-                    return
-                elif param == val and val == None:
-                    print("N/A")
-                    return
-                else:
-                    print("Request not found.")
-                    return
-
+            return properties
+        
         except Exception as e:
-            return e
+            return f"Error: {e}"  # Return error message
         
 class MolModelling(MolSearch):
     
@@ -181,5 +159,3 @@ class MolModelling(MolSearch):
         newRenWin.Render()
         interactor.Initialize()
         interactor.Start()
-
-    
