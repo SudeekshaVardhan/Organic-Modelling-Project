@@ -81,8 +81,6 @@ class Front:
     def molChecker(self):
         '''Input for molecular compounds
         Takes the name/formula, outputs a 2D image and a 3D strucure of the molecule
-
-        
         '''
         for widget in self.main_frame.winfo_children():
             widget.destroy() # Widget to enter the molecule (if user chooses the molecule on newWind, navigate here)
@@ -325,9 +323,9 @@ class Front:
             f"Boiling Point: {self.data.getProperties(info, 'boiling_point')}",
             f"Melting Point: {self.data.getProperties(info, 'melting_point')}",
             f"Specific Heat Capacity: {self.data.getProperties(info, 'specific_heat_capacity')}",
-            f"Enthalpy at 298 K (): {self.data.getProperties(info, 'enthalpy')}",
-            f"Entropy at 298 K (): {self.data.getProperties(info, 'entropy')}",
-            f"Gibbs Free Energy at 298 K (): {self.data.getProperties(info, 'gibbs_free_energy')}",  
+            f"Enthalpy at 298 K (kJ/mol): {self.data.getProperties(info, 'enthalpy')}",
+            f"Entropy at 298 K (J/Kmol): {self.data.getProperties(info, 'entropy')}",
+            f"Gibbs Free Energy at 298 K (kJ/mol): {self.data.getProperties(info, 'gibbs_free_energy')}",  
         ]
 
         for val in properties: # Loop through the array and add value to UI screen
@@ -389,9 +387,9 @@ class Front:
             f"Boiling Point: {self.data.getProperties(info, 'boiling_point')}",
             f"Melting Point: {self.data.getProperties(info, 'melting_point')}",
             f"Specific Heat Capacity: {self.data.getProperties(info, 'specific_heat_capacity')}",
-            f"Enthalpy at 298 K (): {self.data.getProperties(info, 'enthalpy')}",
-            f"Entropy at 298 K (): {self.data.getProperties(info, 'entropy')}",
-            f"Gibbs Free Energy at 298 K (): {self.data.getProperties(info, 'gibbs_free_energy')}",  
+            f"Enthalpy at 298 K (kJ/mol): {self.data.getProperties(info, 'enthalpy')}",
+            f"Entropy at 298 K (J/Kmol): {self.data.getProperties(info, 'entropy')}",
+            f"Gibbs Free Energy at 298 K (kJ/mol): {self.data.getProperties(info, 'gibbs_free_energy')}",  
         ]
 
         for val in properties: # Loop through the array and add value to UI screen

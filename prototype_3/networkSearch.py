@@ -89,10 +89,10 @@ class NetworkSearch:
         except Exception as e: # Most common exception: API doesn't exist
             return f"Error: {e}" # Return any errors while downloading the data from file
         
-    # Fixed values for temperature @ 298 K (similar method in the MolSearch class)
+    # Fixed values for temperature @ 298 K, standard conditions (similar method in the MolSearch class)
     def getProperties(self, mol_name, param=None):
         try:
-            if not mol_name:
+            if not mol_name: #  If molecule not entered
                 return "No molecule entered"
             
             # Get data from PubChem
@@ -125,7 +125,7 @@ class NetworkSearch:
         # Gets info from the PubChempy database instead of COD or MP Rester to generate 2D image. 
         # Properties and other names generated using this database (like uses, etc.)
         self.network = name
-        data = pcp.get_compounds(self.network,'name')[0]     
+        data = pcp.get_compounds(self.network,'name')[0]     # Same as the datascraper class
         if not data:
             print(f"Error: Molecule not found in PubChem")
             return
@@ -139,13 +139,10 @@ class NetworkSearch:
         
         # Save in the same directory as program
         script_dir = os.path.dirname(os.path.abspath(__file__))  
-        file_path = os.path.join(script_dir, "network.png")  # Save inside the same directory
+        file_path = os.path.join(script_dir, "network.png")  # Save under a recognizable name
 
-        # Save image
+        # Save image to location specified
         img = Draw.MolToFile(mol, file_path, size=(200,200))
-        
-        # Check it was saved
-        print(f"mol.png successfully saved at: {file_path}")
 
 class NetModel(NetworkSearch):
     '''
