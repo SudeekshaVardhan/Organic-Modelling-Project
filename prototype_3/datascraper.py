@@ -5,19 +5,17 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem import Draw
 import pubchempy as pcp
+from  thermo.chemical import Chemical
 
 # Modelling Libraries
 import vtk
 import vtkmodules.vtkInteractionStyle
 import vtkmodules.vtkRenderingOpenGL2
-
-import requests
-import json
 import os
 
 
 # This class is to search and process data from the pubchem database
-class Datascraper:
+class MolSearch:
     
     molecule = None
     numAtoms = []
@@ -32,7 +30,7 @@ class Datascraper:
             print(f"Error: Molecule not found in PubChem")
             return
         
-        mol = Chem.MolFromSmiles(data.canonical_smiles)
+        mol = Chem.MolFromSmiles(data.isomeric_smiles)
         mol = Chem.AddHs(mol)
 
         if mol is None:
@@ -43,23 +41,17 @@ class Datascraper:
         script_dir = os.getcwd()  
         file_path = os.path.join(script_dir, "mol.png")  # Save inside the same directory
 
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
         # Save image
         img = Draw.MolToFile(mol, file_path, size=(200,200))
-        
-        # Check it was saved
-        print(f"mol.png successfully saved at: {file_path}")
-
-    def returnSMILES(self):
-        data = pcp.get_compounds(self.molecule,'name')[0]
-        mol = Chem.MolFromSmiles(data.canonical_smiles)
-        mol = Chem.AddHs(mol)
-        print(mol)
 
     def returnCoords(self):
         data = pcp.get_compounds(self.molecule, 'name')[0]
         if not data:
             return pcp.NotFoundError()
-        mol = Chem.MolFromSmiles(data.canonical_smiles)
+        mol = Chem.MolFromSmiles(data.isomeric_smiles)
         mol = Chem.AddHs(mol)
         AllChem.EmbedMolecule(mol)
         AllChem.UFFOptimizeMolecule(mol)
@@ -71,8 +63,10 @@ class Datascraper:
     # Work in progress - redo so not dependent on the list object
     '''
         What it should return:
-        - Molecular formula
+        - Names
         - Properties
+        - Isomers - Number of chiral centers, how many isomers
+
     '''
     def returnNumAtoms(self):
         # Returns the number of atoms in a molecule
@@ -99,50 +93,45 @@ class Datascraper:
                 print(e)
                 return
 
-    def getIsomers(self, mol_name):
+    # Properties found in IB data booklet for select compounds (things that IB Chem students need)
+    # For enthalpy, the temperature is fixed at 298 (the standard values in the databooklet for compounds)
+    def getProperties(self, mol_name, param):
         try:
+            returnVal = param
             if not mol_name:
-                return "No"
+                return "No molecule entered"
             data = pcp.get_compounds(mol_name, "name")[0]
-            st1 = data.defined_atom_stereo_count
-            st2 = data.defined_bond_stereo_count
-            if st1 > 0 and st2 > 0:
-                return True            
-            for compound in data:
-                print("o")
-        except Exception as e:
-            print(e)
-            return
+            
+            logP = data.xlogp # Returns P value
+            charge = data.charge # Get atom charge (if any)
+            iupac = data.iupac_name # Get Atom Name
+            boil = getattr(data, 'boiling_point', 'N/A')
+            melt = getattr(data, 'melting_point', 'N/A')
 
-class NetworkSearch:
-    # Uses the COD database - API Key required to get access (programmer - not sure if user needs it yet)
-    # My account for API is connected to my GitHub account
+            # Thermo data (get from the thermo.chemical library)
+            chem = Chemical(mol_name)
+            specHeatCap = chem.Cp(298)
+            enthalpy = chem.H(298)
+            entropy = chem.S(298)
+            gibbs = chem.G(298)
 
-    def __init__(self):
-        self.network = None
-        self.CODID = None
-        
-    def getCODID(self, name):
-        self.network = name
-        # Searches the database by compound name (Crystallography Open Database)
-        url = f"https://www.crystallography.net/cod/result?text={self.network}&format=json" 
-        response = requests.get(url)
+            vals = [logP, charge, iupac, boil, melt, specHeatCap, enthalpy, entropy, gibbs]
 
-        if response.status_code == 200: # Runs
-            try:
-                data = response.json()
-                if isinstance(data, list) and data:
-                    self.CODID = data[0].get("file", "alt")
-                    return self.CODID
+            for val in vals:
+                if param == val:
+                    print(val)
+                    return
+                elif param == val and val == None:
+                    print("N/A")
+                    return
                 else:
-                    return "Error: Liat does not exist"
-            except json.JSONDecodeError:
-                return "Failed to read JSON file"
-        
-        else:
-            return f"Error: Database is currently not working (Error Code {response.status_code})"
+                    print("Request not found.")
+                    return
 
-class Modelling (Datascraper, NetworkSearch):
+        except Exception as e:
+            return e
+        
+class MolModelling(MolSearch):
     
     newMol = vtk.vtkMolecule()
     
@@ -159,7 +148,7 @@ class Modelling (Datascraper, NetworkSearch):
             stuff = pcp.get_compounds(self.molecule, "name")[0]
             if not stuff:
                 print("Error: Mol not found")
-            mol = Chem.MolFromSmiles(stuff.canonical_smiles)
+            mol = Chem.MolFromSmiles(stuff.isomeric_smiles)
             mol = Chem.AddHs(mol)
             AllChem.EmbedMolecule(mol)
             AllChem.UFFOptimizeMolecule(mol)
@@ -171,9 +160,6 @@ class Modelling (Datascraper, NetworkSearch):
                 self.newMol.AppendBond(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), bond.GetBondType())
         except Exception as e:
             print(e)
-    
-    def createNet(self):
-        pass
 
     def renWin(self):
 
@@ -196,3 +182,4 @@ class Modelling (Datascraper, NetworkSearch):
         interactor.Initialize()
         interactor.Start()
 
+    

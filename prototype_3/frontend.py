@@ -1,11 +1,21 @@
+# the 
 import tkinter as tk
 from tkinter import PhotoImage
 from PIL import Image, ImageTk
-import datascraper
+# Import the classes that get and process information
+import datascraper # Imports MolSearch and MolModelling
+import networkSearch # Imports
+# To access files saved in directory
 import os
 
 class Front:
+    '''
+    The main purpose of this class is to set up the UI. It uses Tkinter, an existing library.
+
+    The Front class was created to satisfy Success Criteria #1: creating a easily accessible interface
+    for teachers and students to use, especially if they are not familiar with terminals.
     
+    '''
     def __init__(self):
         # Create a window object (customized - set color and size)
         self.root = tk.Tk()
@@ -20,7 +30,8 @@ class Front:
 
         # Other important variables
         self.input = tk.StringVar()
-        self.data = datascraper.Modelling()
+        self.data = datascraper.MolModelling()
+        self.nets = networkSearch.NetModel()
     
         self.customWind()
 
@@ -90,7 +101,12 @@ class Front:
         button7.pack(padx=100,pady=150)
 
     def networkChecker(self):
-        '''Input for network solids'''
+        '''
+        Input for network solids
+        This takes the name or formula of a network solid, passes it through the networkSearch class and PubChempy
+        to get the 2D structure and the 3D strucutre.
+        
+        '''
 
         for widget in self.main_frame.winfo_children():
             widget.destroy()
@@ -98,7 +114,7 @@ class Front:
         quer2 = tk.Label(self.main_frame, text= "Enter name or formula of solid or allotrope: ", font=('Courier', 16))
         quer2.pack()
 
-        myentry = tk.Entry(self.main_frame, textvariable= self.input, font=('Courier', 16), width=20)
+        myentry = tk.Entry(self.main_frame, textvariable=self.input, font=('Courier', 16), width=20)
         myentry.pack()
 
         # Submit button should access the network database to get the dat from COD
@@ -135,7 +151,6 @@ class Front:
             
             # Display image as a label
             im_label = tk.Label(self.main_frame, image=image)
-            im_label.image = image
             im_label.pack(pady=20)
 
         # Debugging stuff
@@ -144,31 +159,71 @@ class Front:
         
         except Exception as e:
             print(f"Unexpected error occured: {e}")
-  
-        
-        buttonA = tk.Button(self.main_frame, text="Names", font=('Courier', 12), command=self.returnAltNames)
-        buttonB = tk.Button(self.main_frame, text="Isomers", font=('Courier', 12), command=self.returnIsomers)
-        buttonC = tk.Button(self.main_frame, text="Structural Formulas", font=('Courier', 12))
 
-        buttonA.pack()
-        buttonB.pack()
-        buttonC.pack()
+        buttonA = tk.Button(self.main_frame, text="Other Names", font=('Courier', 12), command=self.returnAltNames)
+        buttonB = tk.Button(self.main_frame, text="Properties", font=('Courier', 12), command=self.returnProperties)
+
+        buttonA.pack(padx=10, pady=10)
+        buttonB.pack(padx=10, pady=10)
 
         returnHome = tk.Button(self.main_frame, text="Home?", font=('Courier', 12), 
                                command=self.molChecker)
         returnHome.pack(padx=10,pady=10)
 
-        # 3D Modelling functionality (in progress)
-        # Must be at the end so it doesn't interrupt other processes
-        # Issue: this takes back to home screen immediately and bypasses "Home?" button. Find a workaround
-        self.data.renWin()  
+        # 3D Modelling functionality
+        # Must be at the end so it doesn't interrupt other processes.
+        self.data.renWin()      
+          
+    def netViewer(self):
+        for widget in self.main_frame.winfo_children(): # Switch to the next page of the program
+            widget.destroy()
+
+        # Instantiates the 
+        self.nets.getCIF(self.input.get())
+
+        # Get the correct file path for the mol image
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(script_dir, "network.png")
+
+        # Display 2D rendering created by the Datascraper class
+        try:
+            # Convert image file to tkinter readable format
+            img = Image.open(file_path)
+            img = img.resize((200, 200), Image.Resampling.LANCZOS)
+            image = ImageTk.PhotoImage(img)
+            
+            # Display image as a label
+            im_label = tk.Label(self.main_frame, image=image)
+            im_label.pack(pady=20)
+
+        # Debugging stuff
+        except FileNotFoundError:
+            print("Error: mol.png not found")
         
-    def returnAltNames(self):
+        except Exception as e:
+            print(f"Unexpected error occured: {e}")
+        
+        buttonA = tk.Button(self.main_frame, text="Other Names", font=('Courier', 12), command=self.returnAltNames)
+        buttonB = tk.Button(self.main_frame, text="Properties", font=('Courier', 12), command=self.returnProperties)
+
+        buttonA.pack(padx=10, pady=10)
+        buttonB.pack(padx=10, pady=10)
+
+
+        # Navigates back to the home screen
+        returnHome = tk.Button(self.main_frame, text="Home?", font=('Courier', 12), 
+                               command=self.molChecker)
+        returnHome.pack(padx=10,pady=10)
+
+        # Call the method necessary to 3D model the class
+        self.nets.netRenWin()
+
+    def returnMolAltNames(self):
         for widget in self.main_frame.winfo_children():
             widget.destroy()
         
-        text = "Alternate Names for {self.data.molecule.get()}"
-        molTitle = tk.Label(self.main_frame, text= "Alternate Names for {self.data.molecule.get()}", font=("Courier", 16))
+        text = f"Alternate Names for {self.input.get()}"
+        molTitle = tk.Label(self.main_frame, text=text, font=("Courier", 16))
         molTitle.pack(padx=10,pady=10)
 
         box1 = tk.Listbox(self.main_frame, width=50) 
@@ -177,23 +232,21 @@ class Front:
         list = self.data.returnNames(self.input.get())
         for data in list:
             box1.insert(tk.END, data)
-            
-          
-    def netViewer(self):
+
+        homeButton = tk.Button(self.main_frame, text="Back", command=self.molViewer)
+        homeButton.pack(padx=10, pady=10)
+
+    def returnMolProperties(self):
         for widget in self.main_frame.winfo_children():
             widget.destroy()
+        text = f"Properties for {self.input.get()}"
+        molTitle = tk.Label(self.main_frame, text=text, font=("Courier", 16))
+        molTitle.pack(padx=10, pady=10)
 
+        properties = []
+        label = tk.Label(self.main_frame, )
 
-
-    def returnIsomers(self):
-        txt = tk.Label(self.main_frame, text=self.data.getIsomers)
-        txt.pack
-
-    def returnIsomers(self):
-        pass
-
+        homeButton = tk.Button(self.main_frame, text="Back", command=self.newWind)
+        homeButton.pack(padx=10, pady=10)
 
 front1 = Front()
-
-data = datascraper.NetworkSearch()
-print(data.getCODID("graphite"))
