@@ -31,9 +31,11 @@ class Front:
         self.input = tk.StringVar()
         self.data = datascraper.MolModelling()
         self.nets = networkSearch.NetModel()
-    
+
+        # Calls first window and adds the stylistic aspects
         self.customWind()
 
+        # Begins the tkinter module
         self.root.mainloop()
 
     def customWind(self):
