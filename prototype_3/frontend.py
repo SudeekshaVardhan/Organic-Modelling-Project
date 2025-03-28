@@ -200,14 +200,14 @@ class Front:
         sulfur = tk.Label(self.main_frame, text="Sulfur = Yellow", font=("Courier", 12))
 
         label.pack(padx=10,pady=10)
-        carb.pack(padx=10,pady=10)
-        oxy.pack(padx=10,pady=10)
-        hyd.pack(padx=10,pady=10)
-        nitro.pack(padx=10,pady=10)
-        sulfur.pack(padx=10,pady=10)
+        carb.pack()
+        oxy.pack()
+        hyd.pack()
+        nitro.pack()
+        sulfur.pack()
 
         # Button to navigate back to molChecker if user wishes to input another molecule
-        returnHome = tk.Button(self.main_frame, text="Home?", font=('Courier', 12), 
+        returnHome = tk.Button(self.main_frame, text="Back", font=('Courier', 12), 
                                command=self.molChecker)
         returnHome.pack(padx=10,pady=10)
 
@@ -230,9 +230,11 @@ class Front:
                       font=("Courier", 10))
         txt2.pack(padx=10, pady=10)
 
-
-        # Instantiates the command to get the single repeating unit of the network
+        # Save the CIF file
         self.nets.getCIF(self.input.get())
+        
+        # Instantiates the command to get the single repeating unit of the network
+        self.nets.getNetImg(self.input.get())
 
         # Get the correct file path for the mol image
         script_dir = os.path.dirname(os.path.abspath(__file__))
